@@ -11,6 +11,7 @@ using Google.Apis.Services;
 using Google.Apis.Upload;
 using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UploadService.Helpers;
 using UploadService.Models;
@@ -38,29 +39,49 @@ namespace UploadService.Controllers
         {
             try
             {
-                // Build drive file container
-                var driveFile = new Google.Apis.Drive.v3.Data.File()
+                var uploadTasks = new List<Task<IUploadProgress>>();
+                foreach (var incomingFile in incomingUpload.Media)
                 {
-                    Name = incomingUpload.Media.FileName,
-                    Parents = new string[] { DROPBOXFOLDER }
-                };
-
-                using (var incomingStream = incomingUpload.Media.OpenReadStream())
-                {
-                    // Create upload request
-                    var uploadRequest = DriveAuth.Service.Files.Create(driveFile,
-                        incomingUpload.Media.OpenReadStream(),
-                        incomingUpload.Media.ContentType);
-
                     // Execute upload
-                    var progress = await uploadRequest.UploadAsync();
-
-                    return new Status { Success = progress.Status == UploadStatus.Completed };
+                    uploadTasks.Add(UploadFile(incomingFile));
                 }
+
+                // Wait for all uploads to complete
+                await Task.WhenAll(uploadTasks);
+                return new Status { Success = uploadTasks.All(task => task.IsCompletedSuccessfully) };
             }
             catch (Exception ex)
             {
-                return new Status { Success = false, Message = ex.Message };
+                return new Status
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        /// <summary>
+        /// Uploads the file.
+        /// </summary>
+        /// <returns>The status of the file upload.</returns>
+        /// <param name="incomingFile">File to upload.</param>
+        private async Task<IUploadProgress> UploadFile(IFormFile incomingFile)
+        {
+            // Build drive file container
+            var driveFile = new Google.Apis.Drive.v3.Data.File()
+            {
+                Name = incomingFile.FileName,
+                Parents = new string[] { DROPBOXFOLDER }
+            };
+
+            using (var incomingStream = incomingFile.OpenReadStream())
+            {
+                // Create upload request
+                var uploadRequest = DriveAuth.Service.Files.Create(driveFile,
+                    incomingStream,
+                    incomingFile.ContentType);
+
+                return await uploadRequest.UploadAsync();
             }
         }
         #endregion

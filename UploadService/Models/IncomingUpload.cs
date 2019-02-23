@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 
 namespace UploadService.Models
@@ -7,6 +9,6 @@ namespace UploadService.Models
     {
         public string Name { get; set; }
         public string Message { get; set; }
-        public IFormFile Media { get; set; }
+        public IEnumerable<IFormFile> Media { get; set; }
     }
 }
