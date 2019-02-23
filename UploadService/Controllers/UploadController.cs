@@ -21,6 +21,10 @@ namespace UploadService.Controllers
     [EnableCors("AllowSpecificOrigin")]
     public class UploadController : ControllerBase
     {
+        #region Fields
+        private static readonly string DROPBOXFOLDER = "11WsVkfkWBVfkwiP8ggCtaBWyLMnqPk10";
+        #endregion
+
         #region Methods
         [HttpGet("IsActive")]
         public Status GetStatus()
@@ -34,17 +38,25 @@ namespace UploadService.Controllers
         {
             try
             {
+                // Build drive file container
                 var driveFile = new Google.Apis.Drive.v3.Data.File()
                 {
                     Name = incomingUpload.Media.FileName,
+                    Parents = new string[] { DROPBOXFOLDER }
                 };
 
-                var file = DriveAuth.Service.Files.Create(driveFile, 
-                    incomingUpload.Media.OpenReadStream(), 
-                    incomingUpload.Media.ContentType);
+                using (var incomingStream = incomingUpload.Media.OpenReadStream())
+                {
+                    // Create upload request
+                    var uploadRequest = DriveAuth.Service.Files.Create(driveFile,
+                        incomingUpload.Media.OpenReadStream(),
+                        incomingUpload.Media.ContentType);
 
-                var progress = await file.UploadAsync();
-                return new Status { Success = progress.Status == UploadStatus.Completed };
+                    // Execute upload
+                    var progress = await uploadRequest.UploadAsync();
+
+                    return new Status { Success = progress.Status == UploadStatus.Completed };
+                }
             }
             catch (Exception ex)
             {
