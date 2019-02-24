@@ -30,4 +30,13 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="Startup.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+<ItemGroup>
+  <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
+  <Content Update="appsettings.json" CopyToPublishDirectory="Always" />
+</ItemGroup>
 </Project>
