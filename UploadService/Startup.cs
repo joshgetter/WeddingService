@@ -26,13 +26,6 @@ namespace UploadService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Configure CORS
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowSpecificOrigin",
-                    builder => builder.WithOrigins("*"));
-            });
-
             // Configure max upload size
             services.Configure<FormOptions>(x =>
             {
@@ -41,6 +34,9 @@ namespace UploadService
             });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            // Inject Configuration into controllers
+            services.AddSingleton(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -54,6 +50,11 @@ namespace UploadService
             {
                 app.UseHsts();
             }
+
+            // Configure CORS
+            string allowedDomain = Configuration["CorsDomain"];
+            app.UseCors(policy => policy.WithOrigins(allowedDomain).WithMethods("GET", "POST"));
+
             app.UseHttpsRedirection();
             app.UseMvc();
         }

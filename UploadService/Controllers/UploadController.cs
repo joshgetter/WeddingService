@@ -13,24 +13,35 @@ using Google.Apis.Util.Store;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using UploadService.Helpers;
 using UploadService.Models;
 
 namespace UploadService.Controllers
 {
     [ApiController]
-    [EnableCors("AllowSpecificOrigin")]
     public class UploadController : ControllerBase
     {
         #region Fields
-        private static readonly string DROPBOXFOLDER = "11WsVkfkWBVfkwiP8ggCtaBWyLMnqPk10";
+        private static string DROPBOXFOLDER;
+        #endregion
+
+        #region Initializers
+        public UploadController(IConfiguration configuration)
+        {
+            // Record dropbox folder as a singleton
+            if (string.IsNullOrWhiteSpace(DROPBOXFOLDER))
+            {
+                DROPBOXFOLDER = configuration["DropboxFolder"];
+            }
+        }
         #endregion
 
         #region Methods
         [HttpGet("IsActive")]
-        public Status GetStatus()
+        public bool IsActive()
         {
-            return new Status { Success = true };
+            return true;
         }
 
         [HttpPost("UploadMedia")]
