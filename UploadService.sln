@@ -12,11 +12,19 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Debug - Raspberry Pi|Any CPU = Debug - Raspberry Pi|Any CPU
+		Release - Raspberry Pi|Any CPU = Release - Raspberry Pi|Any CPU
+		PiDebug|Any CPU = PiDebug|Any CPU
+		PiRelease|Any CPU = PiRelease|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{156A2BC9-9B4F-4EFA-B782-78CB95F8FB1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{156A2BC9-9B4F-4EFA-B782-78CB95F8FB1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{156A2BC9-9B4F-4EFA-B782-78CB95F8FB1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{156A2BC9-9B4F-4EFA-B782-78CB95F8FB1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{156A2BC9-9B4F-4EFA-B782-78CB95F8FB1C}.PiRelease|Any CPU.ActiveCfg = PiRelease|Any CPU
+		{156A2BC9-9B4F-4EFA-B782-78CB95F8FB1C}.PiRelease|Any CPU.Build.0 = PiRelease|Any CPU
+		{156A2BC9-9B4F-4EFA-B782-78CB95F8FB1C}.PiDebug|Any CPU.ActiveCfg = PiDebug|Any CPU
+		{156A2BC9-9B4F-4EFA-B782-78CB95F8FB1C}.PiDebug|Any CPU.Build.0 = PiDebug|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -4,13 +4,49 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\Debug</OutputPath>
+    <NoStdLib>false</NoStdLib>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <OutputPath>bin\Release</OutputPath>
+    <NoStdLib>false</NoStdLib>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'PiRelease|AnyCPU' ">
+    <IntermediateOutputPath>obj\PiRelease</IntermediateOutputPath>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType></DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\PiRelease</OutputPath>
+    <DefineConstants></DefineConstants>
+    <NoWarn></NoWarn>
+    <NoStdLib>false</NoStdLib>
     <CustomCommands>
       <CustomCommands>
         <Command>
           <type>AfterBuild</type>
-          <command>scp -r ${TargetDir} pi@10.2.81.224:/home/pi/UploadService</command>
+          <command>dotnet publish -c PiRelease; scp -r ${TargetDir}/publish pi@10.2.81.224:/home/pi/UploadService</command>
+          <workingdir>${SolutionDir}</workingdir>
+          <externalConsole>True</externalConsole>
+        </Command>
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'PiDebug|AnyCPU' ">
+    <IntermediateOutputPath>obj\PiDebug</IntermediateOutputPath>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType></DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\PiDebug</OutputPath>
+    <DefineConstants></DefineConstants>
+    <NoWarn></NoWarn>
+    <NoStdLib>false</NoStdLib>
+    <CustomCommands>
+      <CustomCommands>
+        <Command>
+          <type>AfterBuild</type>
+          <command>dotnet publish -c PiDebug; scp -r ${TargetDir}/publish pi@10.2.81.224:/home/pi/UploadService</command>
+          <workingdir>${SolutionDir}</workingdir>
           <externalConsole>True</externalConsole>
         </Command>
       </CustomCommands>
@@ -48,7 +84,9 @@
     </Compile>
   </ItemGroup>
 <ItemGroup>
-  <Content Update="appsettings.Development.json" CopyToPublishDirectory="Never" />
-  <Content Update="appsettings.json" CopyToPublishDirectory="Always" />
+  <Content Update="appsettings.Development.json" CopyToPublishDirectory="Always"><CopyToOutputDirectory>Always</CopyToOutputDirectory>
+</Content>
+  <Content Update="appsettings.json" CopyToPublishDirectory="Always"><CopyToOutputDirectory>Always</CopyToOutputDirectory>
+</Content>
 </ItemGroup>
 </Project>
