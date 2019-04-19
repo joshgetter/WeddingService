@@ -53,6 +53,8 @@ namespace UploadService
 
             // Configure CORS
             string allowedDomain = Configuration["CorsDomain"];
+            Console.WriteLine($"CorsDomain: {allowedDomain}");
+
             app.UseCors(policy => policy.WithOrigins(allowedDomain).WithMethods("GET", "POST"));
 
             app.UseHttpsRedirection();

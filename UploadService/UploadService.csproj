@@ -45,7 +45,7 @@
       <CustomCommands>
         <Command>
           <type>AfterBuild</type>
-          <command>dotnet publish -c PiDebug; scp -r ${TargetDir}/publish pi@10.2.81.224:/home/pi/UploadService</command>
+          <command>dotnet publish -c PiDebug; ssh pi@10.2.81.224 "rm -r /home/pi/UploadService"; scp -r ${TargetDir}/publish pi@10.2.81.224:/home/pi/UploadService</command>
           <workingdir>${SolutionDir}</workingdir>
           <externalConsole>True</externalConsole>
         </Command>
@@ -57,6 +57,7 @@
     <Folder Include="Models\" />
     <Folder Include="Helpers\" />
     <Folder Include="token.json\" />
+    <Folder Include="Scripts\" />
   </ItemGroup>
     
   <ItemGroup>
@@ -75,6 +76,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="token.json\Google.Apis.Auth.OAuth2.Responses.TokenResponse-user">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Scripts\StartDev.sh">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Scripts\StartProd.sh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
