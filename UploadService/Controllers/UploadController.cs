@@ -1,16 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Globalization;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Discovery;
-using Google.Apis.Drive.v3;
-using Google.Apis.Services;
 using Google.Apis.Upload;
-using Google.Apis.Util.Store;
-using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -50,11 +43,12 @@ namespace UploadService.Controllers
         {
             try
             {
+                string destinationFolderID = await GetDestinationFolderID(incomingUpload);
                 var uploadTasks = new List<Task<IUploadProgress>>();
                 foreach (var incomingFile in incomingUpload.Media)
                 {
                     // Execute upload
-                    uploadTasks.Add(UploadFile(incomingFile));
+                    uploadTasks.Add(UploadFile(incomingFile, destinationFolderID));
                 }
 
                 // Wait for all uploads to complete
@@ -72,19 +66,97 @@ namespace UploadService.Controllers
         }
 
         /// <summary>
+        /// Determines the folder to file a document.
+        /// </summary>
+        /// <returns>The parent folder to file a given document.</returns>
+        /// <param name="incomingUpload">Incoming upload.</param>
+        private async Task<string> GetDestinationFolderID(IncomingUpload incomingUpload)
+        {
+            try
+            {
+                // If name is empty file in "No Name" folder.
+                string targetFolderName =
+                    string.IsNullOrWhiteSpace(incomingUpload?.Name) ?
+                    "No Name" :
+                    CleanName(incomingUpload.Name);
+
+                var searchRequest = DriveAuth.Service.Files.List();
+                /* 
+                 * Find files of type "folder" where the name 
+                 * equals the uploaded name and is within the dropbox folder.
+                */
+                searchRequest.Q = $"'{DROPBOXFOLDER}' in parents and" +
+                                    " mimeType = 'application/vnd.google-apps.folder' and " +
+                                    $"name = '{targetFolderName}'";
+
+                // Execute query
+                var searchResult = await searchRequest.ExecuteAsync();
+                if (searchResult?.Files?.Count != 0)
+                {
+                    // Return existing folder if one exists.
+                    return searchResult.Files.FirstOrDefault().Id;
+                }
+                else
+                {
+                    // Create a new folder for this name if one doesn't exist.
+                    return await CreateFolder(targetFolderName);
+                }
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Error occurred while getting parent folder.");
+                // On error return the root dropbox folder.
+                return DROPBOXFOLDER;
+            }
+        }
+
+        /// <summary>
+        /// Cleans the name.
+        /// </summary>
+        /// <returns>The clean name in Pascal (title) case.</returns>
+        /// <param name="name">The raw name.</param>
+        private string CleanName(string name)
+        {
+            TextInfo textInfo = new CultureInfo("en-us", false).TextInfo;
+            return textInfo.ToTitleCase(name.Trim());
+        }
+
+        /// <summary>
+        /// Create a google drive folder.
+        /// </summary>
+        /// <returns>The generated folder id.</returns>
+        /// <param name="folderName">Folder name.</param>
+        private async Task<string> CreateFolder(string folderName)
+        {
+            // Build folder object.
+            var folderData = new Google.Apis.Drive.v3.Data.File
+            {
+                Name = folderName,
+                MimeType = "application/vnd.google-apps.folder",
+                Parents = new string[] { DROPBOXFOLDER }
+            };
+            // Build request to add folder.
+            var request = DriveAuth.Service.Files.Create(folderData);
+            // Request folder ID on upload.
+            request.Fields = "id";
+            var uploadedFolder = await request.ExecuteAsync();
+            return uploadedFolder.Id;
+        }
+
+        /// <summary>
         /// Uploads the file.
         /// </summary>
         /// <returns>The status of the file upload.</returns>
         /// <param name="incomingFile">File to upload.</param>
-        private async Task<IUploadProgress> UploadFile(IFormFile incomingFile)
+        /// <param name="parentFileID">The parent folder (also a Google Drive "file").</param>
+        private async Task<IUploadProgress> UploadFile(IFormFile incomingFile, string parentFileID)
         {
             // Build drive file container
             var driveFile = new Google.Apis.Drive.v3.Data.File()
             {
                 Name = incomingFile.FileName,
-                Parents = new string[] { DROPBOXFOLDER }
+                Parents = new string[] { parentFileID }
             };
-
             using (var incomingStream = incomingFile.OpenReadStream())
             {
                 // Create upload request
