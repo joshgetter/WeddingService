@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.Apis.Upload;
@@ -49,6 +50,16 @@ namespace UploadService.Controllers
                 {
                     // Execute upload
                     uploadTasks.Add(UploadFile(incomingFile, destinationFolderID));
+                }
+
+                if (!string.IsNullOrWhiteSpace(incomingUpload.Message))
+                {
+                    // Upload message file
+                    uploadTasks.Add(UploadFile(
+                        $"{DateTime.Now}.txt",
+                        "text/plain",
+                        incomingUpload.Message.ToStream(),
+                        destinationFolderID));
                 }
 
                 // Wait for all uploads to complete
@@ -151,18 +162,34 @@ namespace UploadService.Controllers
         /// <param name="parentFileID">The parent folder (also a Google Drive "file").</param>
         private async Task<IUploadProgress> UploadFile(IFormFile incomingFile, string parentFileID)
         {
+            return await UploadFile(incomingFile.FileName,
+                incomingFile.ContentType,
+                incomingFile.OpenReadStream(),
+                parentFileID);
+        }
+
+        /// <summary>
+        /// Uploads the file.
+        /// </summary>
+        /// <returns>The status of the file upload.</returns>
+        /// <param name="name">The name of the file.</param>
+        /// <param name="mimeType">The file's mime type.</param>
+        /// <param name="stream">The file's stream.</param>
+        /// <param name="parentFileID">The parent folder (also a Google Drive "file").</param>
+        private async Task<IUploadProgress> UploadFile(string name, string mimeType, Stream stream, string parentFileID)
+        {
             // Build drive file container
             var driveFile = new Google.Apis.Drive.v3.Data.File()
             {
-                Name = incomingFile.FileName,
+                Name = name,
                 Parents = new string[] { parentFileID }
             };
-            using (var incomingStream = incomingFile.OpenReadStream())
+            using (var incomingStream = stream)
             {
                 // Create upload request
                 var uploadRequest = DriveAuth.Service.Files.Create(driveFile,
                     incomingStream,
-                    incomingFile.ContentType);
+                    mimeType);
 
                 return await uploadRequest.UploadAsync();
             }
