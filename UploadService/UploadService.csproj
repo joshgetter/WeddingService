@@ -25,7 +25,7 @@
       <CustomCommands>
         <Command>
           <type>AfterBuild</type>
-          <command>dotnet publish -c PiRelease; scp -r ${TargetDir}/publish pi@10.2.81.224:/home/pi/UploadService</command>
+          <command>dotnet publish -c PiRelease; scp -r ${TargetDir}/publish pi@hounvs.ddns.net /home/pi/UploadService</command>
           <workingdir>${SolutionDir}</workingdir>
           <externalConsole>True</externalConsole>
         </Command>
@@ -45,7 +45,7 @@
       <CustomCommands>
         <Command>
           <type>AfterBuild</type>
-          <command>dotnet publish -c PiDebug; ssh pi@10.2.81.224 "rm -r /home/pi/UploadService"; scp -r ${TargetDir}/publish pi@10.2.81.224:/home/pi/UploadService</command>
+          <command>dotnet publish -c PiDebug; ssh pi@hounvs.ddns.net "rm -r /home/pi/UploadService"; scp -r ${TargetDir}/publish pi@hounvs.ddns.net:/home/pi/UploadService</command>
           <workingdir>${SolutionDir}</workingdir>
           <externalConsole>True</externalConsole>
         </Command>
@@ -83,6 +83,12 @@
     </None>
     <None Update="Scripts\StartProd.sh">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="hounvs.ddns.net.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CertificateCredential.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
